@@ -1,39 +1,68 @@
 const Job = require("../models/Job");
 const Application = require("../models/Application");
 
-// POST JOB (Recruiter)
+/* =========================
+   CREATE JOB (Recruiter)
+========================= */
 exports.createJob = async (req, res) => {
   try {
     const job = await Job.create({
       ...req.body,
       createdBy: req.user.id,
     });
+
     res.status(201).json(job);
   } catch (err) {
+    console.error("Create Job Error:", err);
     res.status(500).json({ message: "Failed to create job" });
   }
 };
 
-// GET ALL JOBS (Public)
+/* =========================
+   GET ALL JOBS (Public)
+========================= */
 exports.getJobs = async (req, res) => {
   try {
     const jobs = await Job.find().sort({ createdAt: -1 });
     res.json(jobs);
   } catch (err) {
+    console.error("Get Jobs Error:", err);
     res.status(500).json({ message: "Failed to fetch jobs" });
   }
 };
 
-// APPLY FOR JOB (Candidate)
+/* =========================
+   GET SINGLE JOB BY ID (Public)
+========================= */
+exports.getJobById = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    res.json(job);
+  } catch (err) {
+    console.error("Get Job By ID Error:", err);
+    res.status(500).json({ message: "Failed to fetch job" });
+  }
+};
+
+/* =========================
+   APPLY FOR JOB (Candidate)
+========================= */
 exports.applyJob = async (req, res) => {
   try {
-    const existing = await Application.findOne({
+    const alreadyApplied = await Application.findOne({
       job: req.params.id,
       candidate: req.user.id,
     });
 
-    if (existing) {
-      return res.status(400).json({ message: "Already applied" });
+    if (alreadyApplied) {
+      return res
+        .status(400)
+        .json({ message: "You already applied for this job" });
     }
 
     await Application.create({
@@ -43,6 +72,7 @@ exports.applyJob = async (req, res) => {
 
     res.json({ message: "Applied successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Application failed" });
+    console.error("Apply Job Error:", err);
+    res.status(500).json({ message: "Failed to apply job" });
   }
 };
