@@ -31,6 +31,12 @@ const jobSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ✅ NEW: External Apply Link (OPTIONAL)
+    applyLink: {
+      type: String,
+      trim: true,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -6,8 +6,19 @@ const Application = require("../models/Application");
 ========================= */
 exports.createJob = async (req, res) => {
   try {
+    const { title, company, location, description, type, applyLink } = req.body;
+
+    if (!title || !company || !location || !description) {
+      return res.status(400).json({ message: "All required fields missing" });
+    }
+
     const job = await Job.create({
-      ...req.body,
+      title,
+      company,
+      location,
+      description,
+      type,
+      applyLink, // ✅ supports external apply
       createdBy: req.user.id,
     });
 
@@ -51,9 +62,23 @@ exports.getJobById = async (req, res) => {
 
 /* =========================
    APPLY FOR JOB (Candidate)
+   (Only INTERNAL jobs)
 ========================= */
 exports.applyJob = async (req, res) => {
   try {
+    const job = await Job.findById(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    // 🚫 Block internal apply if external apply link exists
+    if (job.applyLink) {
+      return res.status(400).json({
+        message: "This job requires external application",
+      });
+    }
+
     const alreadyApplied = await Application.findOne({
       job: req.params.id,
       candidate: req.user.id,
