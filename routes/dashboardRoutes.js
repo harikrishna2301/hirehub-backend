@@ -1,16 +1,18 @@
 const express = require("express");
-const router = express.Router();
-
 const auth = require("../middleware/authMiddleware");
+const role = require("../middleware/roleMiddleware");
+
 const {
   getRecruiterDashboard,
   getCandidateDashboard,
-} = require("../controllers/dashboardController);
+} = require("../controllers/dashboardController");
+
+const router = express.Router();
 
 // Recruiter dashboard
-router.get("/recruiter", auth, getRecruiterDashboard);
+router.get("/recruiter", auth, role("recruiter"), getRecruiterDashboard);
 
 // Candidate dashboard
-router.get("/candidate", auth, getCandidateDashboard);
+router.get("/candidate", auth, role("candidate"), getCandidateDashboard);
 
 module.exports = router;
